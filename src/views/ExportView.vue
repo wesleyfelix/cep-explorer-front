@@ -1,66 +1,61 @@
 <template>
   <div>
     <h2>Dados Exportados</h2>
-    <button @click="exportToExcel">Exportar para Excel</button>
-    <table>
-      <thead>
-      <tr>
-        <th>Cep Origem</th>
-        <th>Cep Destino</th>
-        <th>Distância</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="(distancia, index) in distancias" :key="index">
-        <td>{{ distancia.cepOrigem }}</td>
-        <td>{{ distancia.cepDestino }}</td>
-        <td>{{ distancia.distancia }}</td>
-      </tr>
-      </tbody>
-    </table>
+    <q-table
+        :rows="distancias"
+        :columns="columns"
+        row-key="id"
+        :pagination="pagination"
+        :rows-per-page-options="rowsPerPageOptions"
+        :options="tableOptions"
+    >
+      <template v-slot:top-right>
+        <q-btn @click="exportToExcel" color="primary" label="Exportar para Excel" />
+      </template>
+    </q-table>
   </div>
 </template>
 
 <script>
 import * as XLSX from 'xlsx';
+
 export default {
   computed: {
     distancias() {
       return this.$store.state.distancias;
     },
   },
+  data() {
+    return {
+      columns: [
+        { name: 'cepOrigem', label: 'Cep Origem', align: 'left', field: 'cepOrigem' },
+        { name: 'cepDestino', label: 'Cep Destino', align: 'left', field: 'cepDestino' },
+        { name: 'distancia', label: 'Distância', align: 'left', field: 'distancia' },
+      ],
+      pagination: { rowsPerPage: 10 },
+      rowsPerPageOptions: [10, 20, 30],
+      tableOptions: { dense: true },
+    };
+  },
   methods: {
     exportToExcel() {
-        const headers = ['Cep Origem', 'Cep Destino', 'Distância'];
+      const headers = ['Cep Origem', 'Cep Destino', 'Distância'];
+      const data = this.distancias.map(distancia => [
+        distancia.cepOrigem,
+        distancia.cepDestino,
+        distancia.distancia,
+      ]);
 
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'dados');
 
-        const data = this.distancias.map(distancia => [
-          distancia.cepOrigem,
-          distancia.cepDestino,
-          distancia.distancia
-        ]);
-
-        const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'dados');
-
-        XLSX.writeFile(wb, 'dados.xlsx');
+      XLSX.writeFile(wb, 'dados.xlsx');
     },
   },
 };
 </script>
 
-<style>
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-}
+<style scoped>
+/* Se necessário, adicione estilos personalizados aqui */
 </style>
