@@ -2,7 +2,7 @@ import { createStore } from 'vuex';
 
 export default createStore({
   state: {
-    distancias: [], // Agora é uma lista de objetos Distancia
+    distancias: [],
   },
   getters: {
   },

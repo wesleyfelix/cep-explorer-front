@@ -13,7 +13,7 @@ export default {
   methods: {
     downloadTemplate() {
       const headers = ['cepOrigem', 'cepDestino'];
-      const data = ['06787-100', '06787-370']; // Exemplo com uma linha de dados
+      const data = ['06787-100', '06787-370'];
 
       const ws = XLSX.utils.aoa_to_sheet([headers, data]);
       const wb = XLSX.utils.book_new();
@@ -43,10 +43,10 @@ export default {
             const cepDestino = row[1];
             let cepO = cepOrigem.replace("-", "");
             let cepD = cepDestino.replace("-", "");
-            // Fazer a requisição GET usando o Axios
+
             const resposta = await this.makeGetRequest(cepO, cepD);
 
-            // Criar um novo objeto Distancia
+
             const novaDistancia = {
               cepOrigem,
               cepDestino,
@@ -57,7 +57,7 @@ export default {
             this.$store.commit('adicionarDistancia', novaDistancia);
           }
 
-          // Aqui você pode fazer o que quiser com a lista de objetos Distancia
+
           console.log('Distancias armazenadas na store:', this.$store.state.distancias[0]);
 
           // Emitir o evento de importação (se necessário)
@@ -65,7 +65,7 @@ export default {
 
         } catch (error) {
           console.error('Erro durante a importação:', error.message);
-          // Tratar o erro de forma apropriada (pode emitir um evento de erro ou exibir uma mensagem ao usuário)
+
         }
       };
       this.$router.push('/export');

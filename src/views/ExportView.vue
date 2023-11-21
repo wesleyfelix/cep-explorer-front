@@ -33,7 +33,7 @@ export default {
     exportToExcel() {
         const headers = ['Cep Origem', 'Cep Destino', 'Distância'];
 
-        // Transformar dados para o formato aceito pela biblioteca XLSX
+
         const data = this.distancias.map(distancia => [
           distancia.cepOrigem,
           distancia.cepDestino,
@@ -51,7 +51,7 @@ export default {
 </script>
 
 <style>
-/* Estilos opcionais para a tabela */
+
 table {
   width: 100%;
   border-collapse: collapse;
