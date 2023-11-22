@@ -1,15 +1,30 @@
 <template>
-  <div>
-    <button @click="downloadTemplate">Baixar Modelo</button>
-    <input type="file" ref="fileInput" @change="importData" />
-  </div>
+  <NavBarTecBan></NavBarTecBan>
+  <title>Importar planilha</title>
+  <BoxCentralize>
+<!--    <div>-->
+<!--      <button @click="downloadTemplate">Baixar Modelo</button>-->
+<!--      <input type="file" ref="fileInput" @change="importData" />-->
+<!--    </div>-->
+
+    <q-card-section>
+      <q-btn color="primary" label="Baixar modelo"  @click="downloadTemplate"/>
+    </q-card-section>
+
+    <q-card-section>
+      <input type="file" ref="fileInput" @change="importData" />
+    </q-card-section>
+  </BoxCentralize>
 </template>
 
 <script>
 import * as XLSX from 'xlsx';
 import axios from "axios";
+import BoxCentralize from "@/components/BoxCentralize.vue";
+import NavBarTecBan from "@/components/NavBarTecBan.vue";
 
 export default {
+  components: {NavBarTecBan, BoxCentralize},
   methods: {
     downloadTemplate() {
       const headers = ['cepOrigem', 'cepDestino'];

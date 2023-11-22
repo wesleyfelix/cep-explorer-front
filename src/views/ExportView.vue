@@ -1,25 +1,32 @@
 <template>
-  <div>
-    <h2>Dados Exportados</h2>
-    <q-table
-        :rows="distancias"
-        :columns="columns"
-        row-key="id"
-        :pagination="pagination"
-        :rows-per-page-options="rowsPerPageOptions"
-        :options="tableOptions"
-    >
-      <template v-slot:top-right>
-        <q-btn @click="exportToExcel" color="primary" label="Exportar para Excel" />
-      </template>
-    </q-table>
-  </div>
+  <NavBarTecBan></NavBarTecBan>
+  <title>Distância entre os CEPs</title>
+<!--  <box-centralize>-->
+    <div style="height: auto; width: auto">
+      <q-table
+          :rows="distancias"
+          :columns="columns"
+          row-key="id"
+          :pagination="pagination"
+          :rows-per-page-options="rowsPerPageOptions"
+          :options="tableOptions"
+      >
+        <template v-slot:top-right>
+          <q-btn @click="exportToExcel" color="primary" label="Exportar para Excel" />
+        </template>
+      </q-table>
+    </div>
+<!--  </box-centralize>-->
+
 </template>
 
 <script>
 import * as XLSX from 'xlsx';
+import NavBarTecBan from "@/components/NavBarTecBan.vue";
+// import BoxCentralize from "@/components/BoxCentralize.vue";
 
 export default {
+  components: { NavBarTecBan},
   computed: {
     distancias() {
       return this.$store.state.distancias;
