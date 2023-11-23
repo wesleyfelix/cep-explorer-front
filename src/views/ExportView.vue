@@ -1,8 +1,7 @@
 <template>
   <NavBarTecBan></NavBarTecBan>
   <title>Distância entre os CEPs</title>
-<!--  <box-centralize>-->
-    <div style="height: auto; width: auto">
+    <div>
       <q-table
           :rows="distancias"
           :columns="columns"
@@ -16,14 +15,13 @@
         </template>
       </q-table>
     </div>
-<!--  </box-centralize>-->
+
 
 </template>
 
 <script>
 import * as XLSX from 'xlsx';
 import NavBarTecBan from "@/components/NavBarTecBan.vue";
-// import BoxCentralize from "@/components/BoxCentralize.vue";
 
 export default {
   components: { NavBarTecBan},
@@ -35,9 +33,10 @@ export default {
   data() {
     return {
       columns: [
-        { name: 'cepOrigem', label: 'Cep Origem', align: 'left', field: 'cepOrigem' },
-        { name: 'cepDestino', label: 'Cep Destino', align: 'left', field: 'cepDestino' },
-        { name: 'distancia', label: 'Distância', align: 'left', field: 'distancia' },
+        { name: 'cepOrigem', label: 'Cep Origem', align: 'center', field: 'cepOrigem' },
+        { name: 'cepDestino', label: 'Cep Destino', align: 'center', field: 'cepDestino' },
+        { name: 'distancia', label: 'Distância', align: 'center', field: 'distancia' },
+        { name: 'url', label: 'URL da consulta', align: 'center', field: 'url' },
       ],
       pagination: { rowsPerPage: 10 },
       rowsPerPageOptions: [10, 20, 30],
@@ -46,11 +45,12 @@ export default {
   },
   methods: {
     exportToExcel() {
-      const headers = ['Cep Origem', 'Cep Destino', 'Distância'];
+      const headers = ['Cep Origem', 'Cep Destino', 'Distância', 'UrlConsulta'];
       const data = this.distancias.map(distancia => [
         distancia.cepOrigem,
         distancia.cepDestino,
         distancia.distancia,
+        distancia.url,
       ]);
 
       const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
@@ -63,6 +63,4 @@ export default {
 };
 </script>
 
-<style scoped>
-/* Se necessário, adicione estilos personalizados aqui */
-</style>
+

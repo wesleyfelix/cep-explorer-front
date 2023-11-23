@@ -1,30 +1,45 @@
 <template>
-  <NavBarTecBan></NavBarTecBan>
-  <title>Importar planilha</title>
-  <BoxCentralize>
-<!--    <div>-->
-<!--      <button @click="downloadTemplate">Baixar Modelo</button>-->
-<!--      <input type="file" ref="fileInput" @change="importData" />-->
-<!--    </div>-->
+  <div>
+    <NavBarTecBan></NavBarTecBan>
+    <title>Importar planilha</title>
+    <BoxCentralize>
+      <q-card-section>
+        <q-btn v-bind:disabled="isLoading" color="primary" label="Baixar modelo" @click="downloadTemplate" />
+      </q-card-section>
 
-    <q-card-section>
-      <q-btn color="primary" label="Baixar modelo"  @click="downloadTemplate"/>
-    </q-card-section>
+      <q-card-section>
+        <input v-bind:disabled="isLoading" type="file" ref="fileInput" @change="importData" />
+      </q-card-section>
 
-    <q-card-section>
-      <input type="file" ref="fileInput" @change="importData" />
-    </q-card-section>
-  </BoxCentralize>
+
+      <q-spinner
+          v-if="isLoading"
+          color="primary"
+          size="3em"
+          :thickness="2"
+      />
+      <div v-if="isLoading">Total de consultas a serem realizadas: <b>{{this.totalLinhasCep}}</b> </div>
+      <div v-if="isLoading">Total de consultas feitas: <b>{{this.totalConsultas}}</b> </div>
+      <div v-if="isLoading">Total concluído: <b>{{((totalConsultas / totalLinhasCep) * 100).toFixed(1)}}% </b> </div>
+    </BoxCentralize>
+  </div>
 </template>
 
 <script>
 import * as XLSX from 'xlsx';
-import axios from "axios";
-import BoxCentralize from "@/components/BoxCentralize.vue";
-import NavBarTecBan from "@/components/NavBarTecBan.vue";
+import axios from 'axios';
+import BoxCentralize from '@/components/BoxCentralize.vue';
+import NavBarTecBan from '@/components/NavBarTecBan.vue';
 
 export default {
-  components: {NavBarTecBan, BoxCentralize},
+  components: { NavBarTecBan, BoxCentralize },
+  data() {
+    return {
+      isLoading: false,
+      totalLinhasCep: null,
+      totalConsultas: 1
+    };
+  },
   methods: {
     downloadTemplate() {
       const headers = ['cepOrigem', 'cepDestino'];
@@ -37,8 +52,9 @@ export default {
       XLSX.writeFile(wb, 'modelo.xlsx');
     },
     async importData() {
-      const file = this.$refs.fileInput.files[0];
+      this.isLoading = true; // Inicia o estado de carregamento
 
+      const file = this.$refs.fileInput.files[0];
       const reader = new FileReader();
 
       reader.onload = async (e) => {
@@ -48,56 +64,57 @@ export default {
           const sheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-          // Verificar se há pelo menos duas linhas e ambas as colunas estão preenchidas
-          if (jsonData.length < 3 || !jsonData.slice(2).every(row => row[0] && row[1])) {
+          if (jsonData.length < 2 || !jsonData.slice(2).every((row) => row[0] && row[1])) {
+            this.$router.push('/import');
             throw new Error('Pelo menos duas linhas devem conter dados em ambas as colunas.');
           }
-
+          this.totalLinhasCep = jsonData.slice(1).length;
           for (const row of jsonData.slice(1)) {
             const cepOrigem = row[0];
             const cepDestino = row[1];
-            let cepO = cepOrigem.replace("-", "");
-            let cepD = cepDestino.replace("-", "");
+            let cepO = cepOrigem.replace('-', '');
+            let cepD = cepDestino.replace('-', '');
 
             const resposta = await this.makeGetRequest(cepO, cepD);
-
 
             const novaDistancia = {
               cepOrigem,
               cepDestino,
-              distancia: resposta.distancia
+              distancia: resposta.distancia,
+              url: resposta.url,
             };
 
-            // Adicionar o objeto Distancia à lista na store
             this.$store.commit('adicionarDistancia', novaDistancia);
+            this.totalConsultas++;
           }
 
-
-          console.log('Distancias armazenadas na store:', this.$store.state.distancias[0]);
-
-          // Emitir o evento de importação (se necessário)
           this.$emit('import', this.$store.state.distancias);
-
         } catch (error) {
           console.error('Erro durante a importação:', error.message);
-
+          this.$router.push('/import');
+        } finally {
+          this.isLoading = false; // Finaliza o estado de carregamento, independentemente de sucesso ou falha
+          this.$router.push('/export'); // Redireciona após o término das requisições
         }
       };
-      this.$router.push('/export');
+
       reader.readAsArrayBuffer(file);
     },
-
     async makeGetRequest(cepOrigem, cepDestino) {
       try {
-        const response = await axios.get(`http://localhost:8081/cep/${cepOrigem}/${cepDestino}`);
-        // Retorna a resposta para ser utilizada na função importData
+
+        const headers = {
+          'Authorization': 'Bearer ' + this.$store.state.token,
+        };
+
+
+        const response = await axios.get(`http://localhost:8081/cep/${cepOrigem}/${cepDestino}`, {headers: headers});
         return response.data;
       } catch (error) {
         console.error('Erro na requisição GET:', error.message);
-        // Tratar o erro de forma apropriada (pode emitir um evento de erro ou exibir uma mensagem ao usuário)
         throw error;
       }
-    }
-  }
+    },
+  },
 };
 </script>
