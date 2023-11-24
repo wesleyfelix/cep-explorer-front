@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NavBarTecBan></NavBarTecBan>
+    <NavBarDefault></NavBarDefault>
     <title>Importar planilha</title>
     <BoxCentralize>
       <q-card-section>
@@ -41,11 +41,11 @@
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 import BoxCentralize from '@/components/BoxCentralize.vue';
-import NavBarTecBan from '@/components/NavBarTecBan.vue';
+import NavBarDefault from '@/components/NavBarDefault.vue';
 import {ref} from "vue";
 
 export default {
-  components: { NavBarTecBan, BoxCentralize },
+  components: { NavBarDefault, BoxCentralize },
   data() {
     return {
       isLoading: false,

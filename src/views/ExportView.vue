@@ -1,5 +1,5 @@
 <template>
-  <NavBarTecBan></NavBarTecBan>
+  <NavBarDefault></NavBarDefault>
   <title>Distância entre os CEPs</title>
     <div>
       <q-table
@@ -12,6 +12,7 @@
       >
         <template v-slot:top-right>
           <q-btn @click="exportToExcel" color="primary" label="Exportar para Excel" />
+          <q-btn  style="margin: 5px" @click="redirectToImport" color="secondary" label="Nova consulta" />
         </template>
       </q-table>
     </div>
@@ -21,10 +22,10 @@
 
 <script>
 import * as XLSX from 'xlsx';
-import NavBarTecBan from "@/components/NavBarTecBan.vue";
+import NavBarDefault from "@/components/NavBarDefault.vue";
 
 export default {
-  components: { NavBarTecBan},
+  components: { NavBarDefault},
   computed: {
     distancias() {
       return this.$store.state.distancias;
@@ -44,6 +45,9 @@ export default {
     };
   },
   methods: {
+    redirectToImport() {
+      this.$router.push('/import');
+    },
     exportToExcel() {
       const headers = ['Cep Origem', 'Cep Destino', 'Distância', 'UrlConsulta'];
       const data = this.distancias.map(distancia => [
