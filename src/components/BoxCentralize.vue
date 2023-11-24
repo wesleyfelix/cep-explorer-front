@@ -6,7 +6,7 @@
         <slot></slot>
         <footer style="text-align: center; background-color: rgba(0,0,0,.03); padding: 0.75rem 1.25rem; border-top: 1px solid rgba(0,0,0,.125);">
           <small>
-            <img src="../assets/logo.png" width="50" height="20" class="d-inline-block align-top" alt="TecBan">
+            <img src="../assets/localizacao.png" width="30" height="30" class="d-inline-block align-top" alt="TecBan">
             <cite title="CepExplorer">CepExplorer</cite>
           </small>
         </footer>

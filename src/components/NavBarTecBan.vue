@@ -1,7 +1,7 @@
 <template>
-  <q-toolbar class="bg-black text-white">
+  <q-toolbar class="bg-dark text-white">
     <a class="navbar-brand">
-      <img alt="" src="../assets/logo.png" width="90" style="margin-top: 1%; margin-bottom: 1%;">
+      <img alt="" src="../assets/localizacao.png" width="40" style="margin-top: 1%; margin-bottom: 1%;">
     </a>
     <q-toolbar-title>
     </q-toolbar-title>
