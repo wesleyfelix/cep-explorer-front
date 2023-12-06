@@ -30,7 +30,7 @@ export default {
       const inativo = () => {
         this.logout();
       };
-      var minutos = 120;
+      var minutos = 180;
       var tempoDeEspera = minutos * (60 * 1000);
       var timeout = setTimeout(inativo, tempoDeEspera);
 

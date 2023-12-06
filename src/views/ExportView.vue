@@ -37,6 +37,7 @@ export default {
         { name: 'cepOrigem', label: 'Cep Origem', align: 'center', field: 'cepOrigem' },
         { name: 'cepDestino', label: 'Cep Destino', align: 'center', field: 'cepDestino' },
         { name: 'distancia', label: 'Distância', align: 'center', field: 'distancia' },
+        { name: 'transporte', label: 'Tipo de transporte', align: 'center', field: 'transporte' },
         { name: 'url', label: 'URL da consulta', align: 'center', field: 'url' },
       ],
       pagination: { rowsPerPage: 10 },
@@ -49,11 +50,12 @@ export default {
       this.$router.push('/import');
     },
     exportToExcel() {
-      const headers = ['Cep Origem', 'Cep Destino', 'Distância', 'UrlConsulta'];
+      const headers = ['Cep Origem', 'Cep Destino', 'Distância', 'Tipo de transporte','UrlConsulta'];
       const data = this.distancias.map(distancia => [
         distancia.cepOrigem,
         distancia.cepDestino,
         distancia.distancia,
+        distancia.transporte,
         distancia.url,
       ]);
 

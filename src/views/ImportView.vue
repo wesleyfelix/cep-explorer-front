@@ -12,14 +12,13 @@
       </q-card-section>
 
       <q-spinner v-if="isLoading" color="primary" size="3em" :thickness="2" />
-      <div v-if="isLoading">Total de consultas a serem realizadas: <b>{{this.totalLinhasCep}}</b></div>
-      <div v-if="isLoading">Total de consultas feitas: <b>{{this.totalConsultas}}</b></div>
-      <div v-if="isLoading">Total concluído: <b>{{((totalConsultas / totalLinhasCep) * 100).toFixed(1)}}%</b></div>
+      <div v-if="isLoading">Total de consultas a serem realizadas: <b>{{ totalLinhasCep }}</b></div>
+      <div v-if="isLoading">Total de consultas feitas: <b>{{ totalConsultas }}</b></div>
+      <div v-if="isLoading">Tempo decorrido: <b>{{ tempoDecorrido }}</b></div>
+      <div v-if="isLoading">Tempo estimado restante: <b>{{ calcularTempoRestante() }}</b></div>
     </BoxCentralize>
   </div>
-  <q-dialog
-      v-model="small"
-  >
+  <q-dialog v-model="small">
     <q-card style="width: 300px">
       <q-card-section>
         <div class="text-h6">Aviso!</div>
@@ -34,7 +33,6 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
-
 </template>
 
 <script>
@@ -42,7 +40,7 @@ import * as XLSX from 'xlsx';
 import axios from 'axios';
 import BoxCentralize from '@/components/BoxCentralize.vue';
 import NavBarDefault from '@/components/NavBarDefault.vue';
-import {ref} from "vue";
+import { ref } from "vue";
 
 export default {
   components: { NavBarDefault, BoxCentralize },
@@ -51,13 +49,14 @@ export default {
       isLoading: false,
       totalLinhasCep: null,
       totalConsultas: 1,
+      tempoDecorrido: '0:00',
       small: ref(false),
-      msgErro : null
+      msgErro: null
     };
   },
   methods: {
     downloadTemplate() {
-      const headers = ['cepOrigem', 'cepDestino'];
+      const headers = ['cepOrigem', 'cepDestino', 'Tipo de transporte: 1 = A pé; 2 = Carro / Transpote Público;'];
       const data = ['06787-100', '06787-370'];
 
       const ws = XLSX.utils.aoa_to_sheet([headers, data]);
@@ -67,13 +66,15 @@ export default {
       XLSX.writeFile(wb, 'modelo.xlsx');
     },
     async importData() {
-      this.isLoading = true; // Inicia o estado de carregamento
+      const startTime = Date.now();
+
+      this.isLoading = true;
 
       const file = this.$refs.fileInput.files[0];
       const reader = new FileReader();
 
       reader.onload = async (e) => {
-        let removeFile = true; // Flag para remover o arquivo em caso de erro
+        let removeFile = true;
 
         try {
           const data = new Uint8Array(e.target.result);
@@ -81,7 +82,7 @@ export default {
           const sheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-          if (jsonData.length < 2 || !jsonData.slice(2).every((row) => row[0] && row[1])) {
+          if (jsonData.length < 2 || !jsonData.slice(2).every((row) => row[0] && row[1] && row[2])) {
             this.small = true;
             this.msgErro = "Pelo menos duas linhas devem conter dados em ambas as colunas.";
             throw new Error('Pelo menos duas linhas devem conter dados em ambas as colunas.');
@@ -92,6 +93,7 @@ export default {
           for (const row of jsonData.slice(1)) {
             const cepOrigem = row[0];
             const cepDestino = row[1];
+            const tipoTransporte = row[2];
             let cepO = cepOrigem.replace('-', '');
             let cepD = cepDestino.replace('-', '');
 
@@ -100,28 +102,30 @@ export default {
             const novaDistancia = {
               cepOrigem,
               cepDestino,
-              distancia: resposta.distancia,
+              transporte: tipoTransporte == 1 ? "A pé" : "Carro / Transporte Público",
+              distancia: tipoTransporte == 1 ? resposta.distanciaPe : resposta.distanciaCarro,
               url: resposta.url,
             };
 
             this.$store.commit('adicionarDistancia', novaDistancia);
             this.totalConsultas++;
+
+            const tempoDecorrido = (Date.now() - startTime) / 1000;
+            this.tempoDecorrido = this.formatarTempo(tempoDecorrido);
           }
 
           this.$emit('import', this.$store.state.distancias);
-          this.$router.push('/export'); // Redireciona apenas se a importação e as requisições foram bem-sucedidas
+          this.$router.push('/export');
         } catch (error) {
           console.error('Erro durante a importação:', error.message);
           this.small = true;
-          this.msgErro = 'Erro durante a importação: '+ error.message;
-          removeFile = true; // Mantenha essa linha mesmo se a flag já estiver definida como true
-          // Trate o erro conforme necessário, não redirecione para '/import'
+          this.msgErro = 'Erro durante a importação: ' + error.message;
+          removeFile = true;
         } finally {
-          this.isLoading = false; // Finaliza o estado de carregamento, independentemente de sucesso ou falha
+          this.isLoading = false;
 
-          // Remover o arquivo se necessário
           if (removeFile) {
-            this.$refs.fileInput.value = ''; // Limpa o valor do input de arquivo
+            this.$refs.fileInput.value = '';
           }
         }
       };
@@ -134,13 +138,27 @@ export default {
           'Authorization': 'Bearer ' + this.$store.state.token,
         };
 
-        const response = await axios.get(`http://localhost:8081/cep/${cepOrigem}/${cepDestino}`, {headers: headers});
+        const response = await axios.get(`http://localhost:8081/cep/${cepOrigem}/${cepDestino}`, { headers: headers });
         return response.data;
       } catch (error) {
         console.error('Erro na requisição GET:', error.message);
         throw error;
       }
     },
+    formatarTempo(tempoEmSegundos) {
+      const minutos = Math.floor(tempoEmSegundos / 60);
+      const segundos = Math.floor(tempoEmSegundos % 60);
+      return `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+    },
+    calcularTempoRestante() {
+      const tempoRestante = ((this.totalLinhasCep - this.totalConsultas) * this.calcularMediaTempoPorConsulta());
+      return this.formatarTempo(tempoRestante);
+    },
+    calcularMediaTempoPorConsulta() {
+      const tempoTotalSegundos = this.tempoDecorrido.split(':').reduce((acc, val, index) => acc + val * (index === 0 ? 60 : 1), 0);
+      return this.totalConsultas > 0 ? tempoTotalSegundos / this.totalConsultas : 0;
+    },
+
   },
 };
 </script>
